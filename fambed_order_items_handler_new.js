@@ -1,5 +1,21 @@
 function get_size(item){
-    var name = item.name.split(" ");
+    if(item.name.match(/\d{1,3} x \d{1,3} cm/)){
+        name = item.name.split(" ");
+        var loopIndex = -1
+        for(array_item of name){
+            loopIndex += 1
+            if(array_item.match(/\d{3}/)){
+                array_item = name[loopIndex] + name[loopIndex+1] + name[loopIndex+2]
+                if(array_item.match(/(\d{3})x(\d{3})/)){
+                    name[loopIndex] = array_item;
+                    name.splice(loopIndex+1, 1);
+                    name.splice(loopIndex+1, 1);
+                }
+            }
+        }
+    }else{
+        var name = item.name.split(" ");
+    }
     for(index of name){
         if(index.match(/(\d{3})x(\d{3})/)){
             
@@ -51,6 +67,14 @@ function get_color(item){
             break;
         }
     }
+    if(color == "none"){
+        for(data in item.meta_data){
+            if(data.key == "pa_sengegavl-farve"){
+                color = data.value;
+                break;
+            }
+        }
+    }
     return color;
 }
 
@@ -76,9 +100,11 @@ function get_expected_shipping_date(){
 }
 
 var colorCorrection = {
+    "none": "No color",
     "hvid": "White",
     "beige": "Beige",
-    "graa": "Grey"
+    "graa": "Grey",
+    "morkegra": "Dark Grey"
 }
 
 var expectedShippingDate = get_expected_shipping_date();
@@ -150,15 +176,27 @@ for (const item of $input.first().json.line_items) {
         
         }
         
-    }else if(item.sku.match(/fambed_(\d{1,3}|special)/)){
-
+    }else if(item.sku.match(/fambed_familieseng/)){
+        item.specs.type = "Bed";
         if(!item.sku.match(/fambed_special/)){
-
             item.specs.dimensions = get_size(item);
-
-
+            item.specs.color = colorCorrection[get_color];
         }
 
+    }else if(item.sku.match(/fambed_sengegavl/)){
+        item.specs.type = "Headboard";
+
+        for(data of item.meta_data){
+            if(data.key == "pa_bredde"){
+                var width = data.value.replace("-", " ");
+            }
+        }
+        item.specs.color = colorCorrection[get_color];
+        item.specs.dimensions = {
+            "width": width,
+            "length": "",
+            "height": ""
+        };
     }
 
 }
