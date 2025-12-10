@@ -68,7 +68,7 @@ function get_color(item){
         }
     }
     if(color == "none"){
-        for(data in item.meta_data){
+        for(data of item.meta_data){
             if(data.key == "pa_sengegavl-farve"){
                 color = data.value;
                 break;
@@ -104,7 +104,9 @@ var colorCorrection = {
     "hvid": "White",
     "beige": "Beige",
     "graa": "Grey",
-    "morkegra": "Dark Grey"
+    "morkegra": "Dark Grey",
+    "morkegraa": "Dark Grey",
+    "lysegraa": "Light Grey"
 }
 
 var expectedShippingDate = get_expected_shipping_date();
@@ -112,20 +114,32 @@ var expectedShippingDate = get_expected_shipping_date();
 for (const item of $input.first().json.line_items) {
 
     item.specs = {};
+    item.specs.comment = $input.first().json.customer_note;
+    item.errors = "none";
     itemNameArray = item.name.split(" ");
     
     if(item.sku.match(/fambed_tm/)){
+        item.specs.type = "Mattress topper";
 
         if(!item.sku.match(/fambed_tm_special/)){
 
             item.specs.dimensions = get_size(item);
-            item.specs.type = "Mattress topper";
-            item.specs.comment = $input.first().json.customer_note;
 
+        } else{
+            item.errors = "Contact";
+            item.specs.dimensions = {
+                "width": 0,
+                "length": 0,
+                "height": 0
+            };
         }
 
 
     }else if(item.sku.match(/fambed_sheet/)){
+        item.specs.type = "-";
+        item.specs.product = "Sheet with elastic band";
+        item.specs.expectedShipment = get_expected_shipping_date();
+        item.specs.color = colorCorrection[get_color(item)];
 
         if(!item.sku.match(/fambed_sheet_special/)){
 
@@ -139,13 +153,22 @@ for (const item of $input.first().json.line_items) {
                 "prodHeight": Math.round(30 * 1.03)
             };
 
-            item.specs.type = "-";
-            item.specs.product = "Sheet with elastic band";
-            item.specs.expectedShipment = get_expected_shipping_date();
-            item.specs.color = colorCorrection[get_color(item)];
+        } else{
+            item.specs.dimensions = {
+                "labelWidth": 0,
+                "labelLenght": 0,
+                "labelHeight": 0,
+                "prodWidth": 0,
+                "prodLength": 0,
+                "prodHeight": 0
+            };
+            item.errors = "Contact";
         }
 
-    }else if(item.sku.match(/fambed_sk/)){
+    }else if(item.sku.match(/(fambed_sk)|(fambed_system_sk)/)){
+        item.specs.product = "Bedskirt";
+        item.specs.color = colorCorrection[get_color(item)];
+        item.specs.expectedShipment = expectedShippingDate;
 
         if(!item.sku.match(/fambed_sk_special/)){
 
@@ -170,17 +193,27 @@ for (const item of $input.first().json.line_items) {
                 }
             }
             
-            item.specs.color = colorCorrection[get_color(item)];
-            item.specs.product = "Bedskirt";
-            item.specs.expectedShipment = expectedShippingDate;
         
+        } else{
+            item.error = "Contact";
         }
         
     }else if(item.sku.match(/fambed_familieseng/)){
         item.specs.type = "Bed";
         if(!item.sku.match(/fambed_special/)){
+
             item.specs.dimensions = get_size(item);
-            item.specs.color = colorCorrection[get_color];
+
+            for(nestedItem of $input.first().json.line_items){
+                for(compNumber of item.composite_children){
+                    if(nestedItem.id == compNumber){
+                        if(nestedItem.sku.match(/fambed_cover/)){
+                            item.specs.color = colorCorrection[nestedItem.sku.split("_")[2]]
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
     }else if(item.sku.match(/fambed_sengegavl/)){
@@ -189,14 +222,17 @@ for (const item of $input.first().json.line_items) {
         for(data of item.meta_data){
             if(data.key == "pa_bredde"){
                 var width = data.value.replace("-", " ");
+                break;
             }
         }
-        item.specs.color = colorCorrection[get_color];
+        item.specs.color = colorCorrection[get_color(item)];
         item.specs.dimensions = {
             "width": width,
             "length": "",
             "height": ""
         };
+    }else{
+        item.specs.type = "skip";
     }
 
 }
