@@ -1,6 +1,6 @@
 function get_size(item){
     if(item.name.match(/\d{1,3} x \d{1,3} cm/)){
-        name = item.name.split(" ");
+        var name = item.name.split(" ");
         var loopIndex = -1
         for(array_item of name){
             loopIndex += 1
@@ -23,7 +23,7 @@ function get_size(item){
                 
                 if(index.match(/(\d{3})x(\d{3})x(\d{1})cm/)){
                     index = index.replace("cm", "").split("x");
-                    dimensions = {
+                    var dimensions = {
                         "width": index[0],
                         "length": index[1],
                         "height": index[2]
@@ -32,7 +32,7 @@ function get_size(item){
                 }
                 
                 index = index.split("x");
-                dimensions = {
+                var dimensions = {
                     "width": index[0],
                     "length": index[1],
                     "height": index[2]
@@ -48,7 +48,7 @@ function get_size(item){
             }
 
             index = index.split("x");
-            dimensions = {
+            var dimensions = {
                 "width": index[0],
                 "length": index[1],
                 "height": height
@@ -106,15 +106,29 @@ var colorCorrection = {
     "graa": "Grey",
     "morkegra": "Dark Grey",
     "morkegraa": "Dark Grey",
-    "lysegraa": "Light Grey"
+    "lysegraa": "Light Grey",
+    "lysegra": "Light Grey",
+    "grå": "Grey"
+    
 }
+
+var countries = {
+    "dk": "Danmark",
+    "nl": "Holland",
+    "de": "Tyskland",
+    "uk": "United Kingdom",
+    "se": "Sverige",
+    "no": "Norge",
+    "fr": "Frankrig"
+}
+
+$input.first().json.siteCountry = countries[$('Webhook').first().json.body.site_url.split(".").at(-1)];
 
 var expectedShippingDate = get_expected_shipping_date();
 
 for (const item of $input.first().json.line_items) {
 
     item.specs = {};
-    item.specs.comment = $input.first().json.customer_note;
     item.errors = "none";
     itemNameArray = item.name.split(" ");
     
@@ -126,27 +140,45 @@ for (const item of $input.first().json.line_items) {
             item.specs.dimensions = get_size(item);
 
         } else{
-            item.errors = "Contact";
-            item.specs.dimensions = {
-                "width": 0,
-                "length": 0,
-                "height": 0
-            };
+
+            for(metaData of $input.first().json.meta_data){
+                if(metaData.key == "_jf_wc_details"){
+                    if(metaData.value.settings.product_manual[0].id == item.product_id){
+                        var formData = metaData.value.form_data;
+
+                        var dimensions = {
+                            "width": formData.bredde_paa_seng,
+                            "length": formData.laengde_paa_seng,
+                            "height": 0
+                        };
+                        item.specs.dimensions = {
+                            "labelWidth": dimensions["width"],
+                            "labelLength": dimensions["length"],
+                            "labelHeight": dimensions["height"],
+                            "prodWidth": Math.round(dimensions["width"] * 1.03),
+                            "prodLength": Math.round(dimensions["length"] * 1.01),
+                            "prodHeight": Math.round(dimensions["height"] * 1.03)
+                        };
+
+                    }
+                }
+            }
+
         }
 
 
     }else if(item.sku.match(/fambed_sheet/)){
         item.specs.type = "-";
         item.specs.product = "Sheet with elastic band";
-        item.specs.expectedShipment = get_expected_shipping_date();
-        item.specs.color = colorCorrection[get_color(item)];
-
+        item.specs.expectedShipment = expectedShippingDate;
+        
         if(!item.sku.match(/fambed_sheet_special/)){
-
             var dimensions = get_size(item);
+            
+            item.specs.color = colorCorrection[get_color(item)];
             item.specs.dimensions = {
                 "labelWidth": dimensions["width"],
-                "labelLenght": dimensions["length"],
+                "labelLength": dimensions["length"],
                 "labelHeight": "30",
                 "prodWidth": Math.round(dimensions["width"] * 1.03),
                 "prodLength": Math.round(dimensions["length"] * 1.01),
@@ -154,15 +186,30 @@ for (const item of $input.first().json.line_items) {
             };
 
         } else{
-            item.specs.dimensions = {
-                "labelWidth": 0,
-                "labelLenght": 0,
-                "labelHeight": 0,
-                "prodWidth": 0,
-                "prodLength": 0,
-                "prodHeight": 0
-            };
-            item.errors = "Contact";
+            for(metaData of $input.first().json.meta_data){
+                if(metaData.key == "_jf_wc_details"){
+                    if(metaData.value.settings.product_manual[0].id == item.product_id){
+                        var formData = metaData.value.form_data;
+
+                        item.specs.color = colorCorrection[formData.farve.toLowerCase()];
+
+                        var dimensions = {
+                            "width": formData.bredde_paa_lagen,
+                            "length": formData.laengde_paa_lagen,
+                            "height": formData.hoejde_paa_lagen_copy
+                        };
+                        item.specs.dimensions = {
+                            "labelWidth": dimensions["width"],
+                            "labelLength": dimensions["length"],
+                            "labelHeight": dimensions["height"],
+                            "prodWidth": Math.round(dimensions["width"] * 1.03),
+                            "prodLength": Math.round(dimensions["length"] * 1.01),
+                            "prodHeight": Math.round(dimensions["height"] * 1.03)
+                        };
+
+                    }
+                }
+            }
         }
 
     }else if(item.sku.match(/(fambed_sk)|(fambed_system_sk)/)){
@@ -175,7 +222,7 @@ for (const item of $input.first().json.line_items) {
             var dimensions = get_size(item);
             item.specs.dimensions = {
                 "labelWidth": dimensions["width"],
-                "labelLenght": dimensions["length"],
+                "labelLength": dimensions["length"],
                 "labelHeight": dimensions["height"],
                 "prodWidth": Math.round(dimensions["width"] * 1.01),
                 "prodLength": Math.round(dimensions["length"] * 1.01),
@@ -187,15 +234,46 @@ for (const item of $input.first().json.line_items) {
                 if(data.key == "pa_sengekappe-stil"){
                     if(data.value == "boelget"){
                         item.specs.type = "Ruffled";
+                        break;
                     }else{
                         item.specs.type = "with inverted pleats";
+                        break;
                     }
                 }
             }
             
         
         } else{
-            item.error = "Contact";
+            for(metaData of $input.first().json.meta_data){
+                if(metaData.key == "_jf_wc_details"){
+                    if(metaData.value.settings.product_manual[0].id == item.product_id){
+                        var formData = metaData.value.form_data;
+
+                        item.specs.color = colorCorrection[formData.farve.toLowerCase()];
+                        
+                        if(formData.stil.toLowerCase() == "boelget"){
+                            item.specs.type = "Ruffled";
+                        }else{
+                            item.specs.type = "with inverted pleats";
+                        }
+
+                        var dimensions = {
+                            "width": formData.bredde_paa_sk,
+                            "length": formData.laengde_paa_sk,
+                            "height": formData.hoejde_paa_sk
+                        };
+                        item.specs.dimensions = {
+                            "labelWidth": dimensions["width"],
+                            "labelLength": dimensions["length"],
+                            "labelHeight": dimensions["height"],
+                            "prodWidth": Math.round(dimensions["width"] * 1.01),
+                            "prodLength": Math.round(dimensions["length"] * 1.01),
+                            "prodHeight": Math.round(dimensions["height"] * 1.03)
+                        };
+
+                    }
+                }
+            }
         }
         
     }else if(item.sku.match(/fambed_familieseng/)){
@@ -232,7 +310,7 @@ for (const item of $input.first().json.line_items) {
             "height": ""
         };
     }else{
-        item.specs.type = "skip";
+        item.errors = "skip";
     }
 
 }
