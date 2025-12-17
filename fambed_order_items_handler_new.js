@@ -132,6 +132,12 @@ for (const item of $input.first().json.line_items) {
     item.errors = "none";
     itemNameArray = item.name.split(" ");
     
+    if(item.name.includes("×")){
+        item.name = item.name.replace("×", "x");
+    }
+    if(typeof item.sku == "object"){
+        item.errors = "no_sku";
+    }else{
     if(item.sku.match(/fambed_tm/)){
         item.specs.type = "Mattress topper";
 
@@ -314,5 +320,5 @@ for (const item of $input.first().json.line_items) {
     }
 
 }
-
+}
 return $input.all();
