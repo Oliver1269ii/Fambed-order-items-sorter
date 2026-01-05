@@ -57,6 +57,20 @@ function get_size(item){
             return dimensions;
         }
     }
+    if (item.sku.match(/fambed_sk_(\d{3})x(\d{3})/)){
+        for (let data of item.meta_data){
+            if (data.key == "pa_laengde"){
+                var itemLength = data.value;
+            }
+            else if (data.key == "pa_bredde"){
+                var itemWidth = data.value;
+            }
+            else if (data.key == "pa_hoejde"){
+                var itemHeight = data.value.replace("cm", ""); 
+            }
+        }
+        return {"width": itemWidth, "length": itemLength, "height": itemHeight};
+    }
 }
 
 function get_color(item){
@@ -282,7 +296,7 @@ for (const item of $input.first().json.line_items) {
             }
         }
         
-    }else if(item.sku.match(/fambed_familieseng/)){
+    }else if(item.sku.match(/fambed_(\d{3})x(\d{3})/)){
         item.specs.type = "Bed";
         if(!item.sku.match(/fambed_special/)){
 
@@ -291,7 +305,7 @@ for (const item of $input.first().json.line_items) {
             for(nestedItem of $input.first().json.line_items){
                 for(compNumber of item.composite_children){
                     if(nestedItem.id == compNumber){
-                        if(nestedItem.sku.match(/fambed_cover/)){
+                        if(nestedItem.sku.match(/fambed_cover/) || nestedItem.sku.match(/fambed_((light|dark)_grey)|(beige)/)){
                             item.specs.color = colorCorrection[nestedItem.sku.split("_")[2]]
                             break;
                         }
