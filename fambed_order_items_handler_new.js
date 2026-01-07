@@ -1,4 +1,5 @@
 function get_size(item){
+
     if(item.name.match(/\d{1,3} x \d{1,3} cm/)){
         var name = item.name.split(" ");
         var loopIndex = -1
