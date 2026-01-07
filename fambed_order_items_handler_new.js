@@ -1,17 +1,17 @@
 function get_size(item){
 
     for (let data of item.meta_data){
-        if (data.key == "pa_laengde"){
+        if (translationMap["length"].includes(data.key)){
             var itemLength = data.value;
         }
-        else if (data.key == "pa_bredde"){
+        else if (translationMap["width"].includes(data.key)){
             var itemWidth = data.value;
         }
-        else if (data.key == "pa_hoejde"){
+        else if (translationMap["height"].includes(data.key)){
             var itemHeight = data.value.replace("cm", ""); 
         }
     }
-    if(typeof itemLength !== "undefined" && typeof itemHeight !== "undefined"){
+    if(typeof itemLength !== "undefined" && typeof itemWidth !== "undefined"){
         if(typeof itemHeight === "undefined"){
             var itemHeight = "0";
         }
@@ -62,7 +62,7 @@ function get_size(item){
             var height = 0;
 
             for(data of item.meta_data){
-                if(data.key == "pa_hoejde"){
+                if(translationMap["height"].includes(data.key)){
                     height = data.value.replace("cm", "");
                 }
             }
@@ -77,33 +77,19 @@ function get_size(item){
             return dimensions;
         }
     }
-    if (item.sku.match(/fambed_sk_(\d{3})x(\d{3})/)){
-        for (let data of item.meta_data){
-            if (data.key == "pa_laengde"){
-                var itemLength = data.value;
-            }
-            else if (data.key == "pa_bredde"){
-                var itemWidth = data.value;
-            }
-            else if (data.key == "pa_hoejde"){
-                var itemHeight = data.value.replace("cm", ""); 
-            }
-        }
-        return {"width": itemWidth, "length": itemLength, "height": itemHeight};
-    }
 }
 
 function get_color(item){
     var color = "none";
-    for(data of item.meta_data){
-        if(data.key == "pa_farve"){
+    for(let data of item.meta_data){
+        if(translationMap["color"].includes(data.key)){
             color = data.value;
             break;
         }
     }
     if(color == "none"){
         for(data of item.meta_data){
-            if(data.key == "pa_sengegavl-farve"){
+            if(translationMap["headboardcolor"].includes(data.key)){
                 color = data.value;
                 break;
             }
@@ -133,16 +119,29 @@ function get_expected_shipping_date(){
     return expected;
 }
 
+const translationMap = {
+    "color": ["pa_farve", "pa_farbe"],
+    "width": ["pa_bredde", "pa_breite"],
+    "length": ["pa_laengde"],
+    "height": ["pa_hoejde"],
+    "headboardcolor": ["pa_sengegavl-farve", "pa_kopfteil-farbe"],
+    "skstyle": ["pa_sengekappe-stil"]
+}
+
 var colorCorrection = {
     "none": "No color",
     "hvid": "White",
+    "weis": "White",
     "beige": "Beige",
     "graa": "Grey",
+    "grå": "Grey",
+    "grau": "Grey",
     "morkegra": "Dark Grey",
     "morkegraa": "Dark Grey",
+    "dunkelgrau": "Dark Grey",
     "lysegraa": "Light Grey",
     "lysegra": "Light Grey",
-    "grå": "Grey"
+    "hellgrau": "Light Grey"
     
 }
 
@@ -271,7 +270,7 @@ for (const item of $input.first().json.line_items) {
             
             // get style/type for bedskirt
             for(data of item.meta_data){
-                if(data.key == "pa_sengekappe-stil"){
+                if(translationMap["skstyle"].includes(data.key)){
                     if(data.value == "boelget"){
                         item.specs.type = "Ruffled";
                         break;
@@ -338,7 +337,7 @@ for (const item of $input.first().json.line_items) {
         item.specs.type = "Headboard";
 
         for(data of item.meta_data){
-            if(data.key == "pa_bredde"){
+            if(translationMap["width"].includes(data.key)){
                 var width = data.value.replace("-", " ");
                 break;
             }
