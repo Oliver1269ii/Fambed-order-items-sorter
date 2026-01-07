@@ -232,7 +232,7 @@ for (const item of $input.first().json.line_items) {
             }
         }
 
-    }else if(item.sku.match(/(fambed_sk)|(fambed_system_sk)/)){
+    }else if(item.sku.match(/fambed_((system_)?)sk_(\d{3})/)){
         item.specs.product = "Bedskirt";
         item.specs.color = colorCorrection[get_color(item)];
         item.specs.expectedShipment = expectedShippingDate;
@@ -296,7 +296,7 @@ for (const item of $input.first().json.line_items) {
             }
         }
         
-    }else if(item.sku.match(/fambed_(\d{3})x(\d{3})/)){
+    }else if(item.sku.match(/fambed_((familieseng_)?)(\d{3})x(\d{3})/)){
         item.specs.type = "Bed";
         if(!item.sku.match(/fambed_special/)){
 
