@@ -1,5 +1,24 @@
 function get_size(item){
 
+    for (let data of item.meta_data){
+        if (data.key == "pa_laengde"){
+            var itemLength = data.value;
+        }
+        else if (data.key == "pa_bredde"){
+            var itemWidth = data.value;
+        }
+        else if (data.key == "pa_hoejde"){
+            var itemHeight = data.value.replace("cm", ""); 
+        }
+    }
+    if(typeof itemLength !== "undefined" && typeof itemHeight !== "undefined"){
+        if(typeof itemHeight === "undefined"){
+            var itemHeight = "0";
+        }
+        return {"width": itemWidth, "length": itemLength, "height": itemHeight};
+    }
+    item.errors = "sizeFailSafe";
+
     if(item.name.match(/\d{1,3} x \d{1,3} cm/)){
         var name = item.name.split(" ");
         var loopIndex = -1
