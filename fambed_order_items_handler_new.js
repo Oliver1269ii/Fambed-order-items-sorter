@@ -2,13 +2,13 @@ function get_size(item){
 
     for (let data of item.meta_data){
         if (translationMap["length"].includes(data.key)){
-            var itemLength = data.value;
+            var itemLength = data.value.replace(/[^0-9]/g, '');
         }
         else if (translationMap["width"].includes(data.key)){
-            var itemWidth = data.value;
+            var itemWidth = data.value.replace(/[^0-9]/g, '');
         }
         else if (translationMap["height"].includes(data.key)){
-            var itemHeight = data.value.replace("cm", ""); 
+            var itemHeight = data.value.replace(/[^0-9]/g, ''); 
         }
     }
     if(typeof itemLength !== "undefined" && typeof itemWidth !== "undefined"){
@@ -19,7 +19,7 @@ function get_size(item){
     }
     item.errors = "sizeFailSafe";
 
-    if(item.name.match(/\d{1,3} x \d{1,3} cm/)){
+    if(item.name.match(/\d{1,3} x \d{1,3}/)){
         var name = item.name.split(" ");
         var loopIndex = -1
         for(array_item of name){
@@ -139,9 +139,11 @@ var colorCorrection = {
     "morkegra": "Dark Grey",
     "morkegraa": "Dark Grey",
     "dunkelgrau": "Dark Grey",
+    "dark_grey": "Dark Grey",
     "lysegraa": "Light Grey",
     "lysegra": "Light Grey",
-    "hellgrau": "Light Grey"
+    "hellgrau": "Light Grey",
+    "light_grey": "Light Grey"
     
 }
 
@@ -325,7 +327,7 @@ for (const item of $input.first().json.line_items) {
                 for(compNumber of item.composite_children){
                     if(nestedItem.id == compNumber){
                         if(nestedItem.sku.match(/fambed_cover/) || nestedItem.sku.match(/fambed_((light|dark)_grey)|(beige)/)){
-                            item.specs.color = colorCorrection[nestedItem.sku.split("_")[2]]
+                            item.specs.color = colorCorrection[nestedItem.sku.replace("fambed_", "")];
                             break;
                         }
                     }
