@@ -120,19 +120,20 @@ function get_expected_shipping_date(){
 }
 
 const translationMap = {
-    "color": ["pa_farve", "pa_farbe"],
-    "width": ["pa_bredde", "pa_breite"],
+    "color": ["pa_farve", "pa_farbe", "pa_farg"],
+    "width": ["pa_bredde", "pa_breite", "pa_width"],
     "length": ["pa_laengde"],
-    "height": ["pa_hoejde"],
-    "headboardcolor": ["pa_sengegavl-farve", "pa_kopfteil-farbe"],
-    "skstyle": ["pa_sengekappe-stil"]
+    "height": ["pa_hoejde", "pa_hojd"],
+    "headboardcolor": ["pa_sengegavl-farve", "pa_kopfteil-farbe", "pa_headboard-color"],
+    "skstyle": ["pa_sengekappe-stil", "pa_sangkappa-stil"]
 }
 
 var colorCorrection = {
     "none": "No color",
+    "beige": "Beige",
     "hvid": "White",
     "weis": "White",
-    "beige": "Beige",
+    "vit": "White",
     "graa": "Grey",
     "grå": "Grey",
     "grau": "Grey",
@@ -326,7 +327,7 @@ for (const item of $input.first().json.line_items) {
             for(nestedItem of $input.first().json.line_items){
                 for(compNumber of item.composite_children){
                     if(nestedItem.id == compNumber){
-                        if(nestedItem.sku.match(/fambed_cover/) || nestedItem.sku.match(/fambed_((light|dark)_grey)|(beige)/)){
+                        if(nestedItem.sku.match(/fambed_cover/) || nestedItem.sku.match(/fambed_(((light|dark)_grey)|(beige))/)){
                             item.specs.color = colorCorrection[nestedItem.sku.replace("fambed_", "")];
                             break;
                         }
