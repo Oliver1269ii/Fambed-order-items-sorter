@@ -125,7 +125,9 @@ const translationMap = {
     "length": ["pa_laengde"],
     "height": ["pa_hoejde", "pa_hojd"],
     "headboardcolor": ["pa_sengegavl-farve", "pa_kopfteil-farbe", "pa_headboard-color"],
-    "skstyle": ["pa_sengekappe-stil", "pa_sangkappa-stil"]
+    "skstyle": ["pa_sengekappe-stil","pa_stil", "pa_sangkappa-stil"],
+    "skruffled": ["boelget", "gerafft", "volangsangkappa"],
+    "skpleats": ["lige", "glatt", "rak-sangkappa"]
 }
 
 var colorCorrection = {
@@ -274,10 +276,10 @@ for (const item of $input.first().json.line_items) {
             // get style/type for bedskirt
             for(data of item.meta_data){
                 if(translationMap["skstyle"].includes(data.key)){
-                    if(data.value == "boelget"){
+                    if(translationMap["skruffled"].includes(data.value)){
                         item.specs.type = "Ruffled";
                         break;
-                    }else{
+                    }else if(translationMap["skpleats"].includes(data.value)){
                         item.specs.type = "with inverted pleats";
                         break;
                     }
