@@ -120,26 +120,30 @@ function get_expected_shipping_date(){
 }
 
 const translationMap = {
-    "color": ["pa_farve", "pa_farbe", "pa_farg", "pa_farge"],
-    "width": ["pa_bredde", "pa_breite", "pa_width"],
+    "color": ["pa_farve", "pa_farbe", "pa_farg", "pa_farge", "pa_kleur", "pa_color"],
+    "width": ["pa_bredde", "pa_breite", "pa_width", "pa_breedte"],
     "length": ["pa_laengde"],
     "height": ["pa_hoejde", "pa_hojd", "pa_hoyde"],
-    "headboardcolor": ["pa_sengegavl-farve", "pa_kopfteil-farbe", "pa_headboard-color", "pa_farge-pa-hodegavlen"],
-    "skstyle": ["pa_sengekappe-stil","pa_stil", "pa_sangkappa-stil"],
-    "skruffled": ["boelget", "gerafft", "volangsangkappa"],
-    "skpleats": ["lige", "glatt", "rak-sangkappa"]
+    "headboardcolor": ["pa_sengegavl-farve", "pa_kopfteil-farbe", "pa_headboard-color", "pa_farge-pa-hodegavlen", "pa_kleur-van-het-hoofdbord"],
+    "skstyle": ["pa_sengekappe-stil","pa_stil", "pa_sangkappa-stil", "pa_style"],
+    "skruffled": ["boelget", "gerafft", "volangsangkappa", "ruffled"],
+    "skpleats": ["lige", "glatt", "rak-sangkappa", "straight"]
 }
 
 var colorCorrection = {
     "none": "No color",
     "beige": "Beige",
+    "white": "White",
     "hvid": "White",
     "hvit": "White",
     "weis": "White",
     "vit": "White",
+    "wit": "White",
+    "grey": "Grey",
     "graa": "Grey",
     "grå": "Grey",
     "grau": "Grey",
+    "grijs": "Grey",
     "morkegra": "Dark Grey",
     "morkegraa": "Dark Grey",
     "dunkelgrau": "Dark Grey",
@@ -147,7 +151,8 @@ var colorCorrection = {
     "lysegraa": "Light Grey",
     "lysegra": "Light Grey",
     "hellgrau": "Light Grey",
-    "light_grey": "Light Grey"
+    "light_grey": "Light Grey",
+    "lichtgrijs": "Light Grey"
     
 }
 

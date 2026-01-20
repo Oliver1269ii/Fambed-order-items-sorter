@@ -1,36 +1,43 @@
-var array = {
-    "meta_data": [
-                {
-                    "id": 54897,
-                    "key": "pa_bredde",
-                    "value": "320-cm",
-                    "display_key": "Bredde",
-                    "display_value": "320 cm"
-                },
-                {
-                    "id": 54898,
-                    "key": "pa_sengegavl-farve",
-                    "value": "morkegra",
-                    "display_key": "Sengegavl farve",
-                    "display_value": "Mørkegrå"
-                },
-                {
-                    "id": 54899,
-                    "key": "_composite_children",
-                    "value": [
-                        "3960cdb211857be6977630c8cf28643b",
-                        "3251eedbef1de9f064d9d2f219976caf",
-                        "8983eb0d8a5af6572fc2426e4dfbf8c4",
-                        "c6f3f998c4f0c0ccecd396480d16cab7",
-                        "1d4c765e617fe54acc3eb0898f8d2748"
-                    ],
-                    "display_key": "_composite_children",
-                    "display_value": [
-                        "3960cdb211857be6977630c8cf28643b",
-                        "3251eedbef1de9f064d9d2f219976caf",
-                        "8983eb0d8a5af6572fc2426e4dfbf8c4",
-                        "c6f3f998c4f0c0ccecd396480d16cab7",
-                        "1d4c765e617fe54acc3eb0898f8d2748"
-                    ]
-                }
-};
+const { loadEnvFile } = require('node:process');
+loadEnvFile();
+
+async function get_orders(base_url, ck, cs, quantity=10, timeDelay=2500){
+    const url =
+    `${base_url}/wp-json/wc/v3/orders` +
+    `?per_page=${quantity}&order=desc&orderby=date` +
+    `&consumer_key=${ck}` +
+    `&consumer_secret=${cs}`;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+    console.error(await response.text());
+    throw new Error(`HTTP ${response.status}`);
+    }
+
+    const orders = await response.json();
+    let index = 0;
+    for(order of orders){
+        index++
+        let payload = {
+            "order_id": order["id"],
+            "site_url": base_url
+        }
+        fetch("https://voksevaerket.app.n8n.cloud/webhook/fdfc8430-bcbf-42b6-9161-d8151cba696f", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            console.log(`Triggered Webhook number ${index} with order ID ${order["id"]}:`, response.statusText);
+        })
+        .catch(errors => {
+            console.error("Error:", error);
+        });
+        await new Promise(r => setTimeout(r, timeDelay));
+    }
+}
+
+get_orders("https://fambed.co.uk", process.env.UKck, process.env.UKcs, quantity=50, timeDelay=7500);
